@@ -58,7 +58,7 @@
   id: BaseVampireCMOStealObjective
   components:
   - type: NotJobRequirement
-    job: ChiefMedicalOfficer
+    jobs: [ ChiefMedicalOfficer ]
   - type: StealCondition
     owner: job-name-cmo
 
