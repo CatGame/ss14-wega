@@ -79,7 +79,7 @@ namespace Content.Client.Inventory
         {
             base.Open();
 
-            _strippingMenu = new StrippingMenu(); // Corvax-Wega-Edit
+            _strippingMenu = this.CreateWindow<StrippingMenu>(); // Corvax-Wega-Edit
             _strippingMenu.OnDirty += UpdateMenu;
             _strippingMenu.Title = Loc.GetString("strippable-bound-user-interface-stripping-menu-title", ("ownerName", Identity.Name(Owner, EntMan)));
 
