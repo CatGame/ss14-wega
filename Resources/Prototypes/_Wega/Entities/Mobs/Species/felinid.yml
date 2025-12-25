@@ -48,6 +48,7 @@
     baseWalkSpeed: 3.0
     baseSprintSpeed: 5.0
   - type: Stamina
+    baseCritThreshold: 80
     critThreshold: 80
   - type: DamageOnLand
     damage:

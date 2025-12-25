@@ -1187,7 +1187,7 @@
         emptyLabel: borg-slot-food-empty
         whitelist:
           components:
-          - Food
+          - Edible
     # Corvax-Wega-Robot-end
   - type: BorgModuleIcon
     icon: { sprite: Interface/Actions/actions_borg.rsi, state: service-module }

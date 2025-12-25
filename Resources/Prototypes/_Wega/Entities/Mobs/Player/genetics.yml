@@ -35,6 +35,7 @@
       800: 0.7
       900: 0.5
   - type: Stamina
+    baseCritThreshold: 300
     critThreshold: 300
   - type: CombatMode
   - type: MovementSpeedModifier
