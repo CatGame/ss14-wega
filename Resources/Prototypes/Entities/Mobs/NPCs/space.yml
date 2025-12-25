@@ -36,13 +36,11 @@
       0: Alive
       80: Dead
   - type: Stamina
-    baseCritThreshold: 150
+    critThreshold: 150
   - type: MovementAlwaysTouching
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Cryoxadone
-        Quantity: 300
+    bloodMaxVolume: 300
+    bloodReagent: Cryoxadone
   - type: CombatMode
   - type: Temperature
     heatDamageThreshold: 500
@@ -157,7 +155,7 @@
       Dead:
         Base: kangaroo-space-dead
   - type: Stamina
-    baseCritThreshold: 180
+    critThreshold: 180
   - type: Inventory
     speciesId: kangaroo
     templateId: spacekangaroo
@@ -202,7 +200,7 @@
       0: Alive
       45: Dead
   - type: Stamina
-    baseCritThreshold: 150
+    critThreshold: 150
   - type: DamageStateVisuals
     states:
       Alive:
@@ -218,10 +216,8 @@
       amount: 1
       prob: 0.5
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Cryoxadone
-        Quantity: 250
+    bloodMaxVolume: 250
+    bloodReagent: Cryoxadone
   - type: Fixtures
     fixtures:
       fix1:
@@ -307,7 +303,7 @@
         0: Alive
         45: Dead
     - type: Stamina
-      baseCritThreshold: 150
+      critThreshold: 150
     - type: DamageStateVisuals
       states:
         Alive:
@@ -325,10 +321,8 @@
           amount: 1
           prob: 0.3
     - type: Bloodstream
-      bloodReferenceSolution:
-        reagents:
-        - ReagentId: Cryoxadone
-          Quantity: 200
+      bloodMaxVolume: 200
+      bloodReagent: Cryoxadone
     - type: Fixtures
       fixtures:
         fix1:
@@ -501,10 +495,8 @@
   - type: CombatMode
     combatToggleAction: ActionCombatModeToggleOff
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Cryoxadone
-        Quantity: 30
+    bloodMaxVolume: 30
+    bloodReagent: Cryoxadone
   - type: CanEscapeInventory
   - type: MobPrice
     price: 50

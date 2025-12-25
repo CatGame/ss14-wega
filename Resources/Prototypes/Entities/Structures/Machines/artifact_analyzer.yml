@@ -48,7 +48,8 @@
   - type: Transform
     anchored: true
   - type: ApcPowerReceiver
-    powerLoad: 5000
+    powerLoad: 12000
+    needsPower: false #only turns on when scanning
   - type: ArtifactAnalyzer
   - type: ItemPlacer
     whitelist:

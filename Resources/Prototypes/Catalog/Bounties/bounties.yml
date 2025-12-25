@@ -110,7 +110,7 @@
 
 - type: cargoBounty
   id: BountyCrayon
-  reward: 1500
+  reward: 4000
   description: bounty-description-crayon
   entries:
   - name: bounty-item-crayon
@@ -519,7 +519,6 @@
     whitelist:
       components:
       - Battery
-      - PredictedBattery
 
 - type: cargoBounty
   id: BountyLaserGun
@@ -531,7 +530,7 @@
     amount: 6
     whitelist:
       components:
-      - BatteryAmmoProvider
+      - HitscanBatteryAmmoProvider
     blacklist:
       components:
       - PowerCell
@@ -604,6 +603,7 @@
   description: bounty-description-rollerskates
   entries:
   - name: bounty-item-rollerskates
+    amount: 2
     whitelist:
       components:
       - Skates
@@ -709,7 +709,7 @@
 
 - type: cargoBounty
   id: BountyWine
-  reward: 1500
+  reward: 3000
   description: bounty-description-wine
   entries:
   - name: bounty-item-wine

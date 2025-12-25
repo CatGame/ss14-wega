@@ -15,7 +15,6 @@ namespace Content.Server.Disease.Cures
     {
         [DataField("min")]
         public FixedPoint2 Min = 5;
-
         [DataField("reagent")]
         public string? Reagent;
 
@@ -25,20 +24,24 @@ namespace Content.Server.Disease.Cures
             if (!args.EntityManager.TryGetComponent<BloodstreamComponent>(args.DiseasedEntity, out var bloodstream))
                 return false;
 
-            if (bloodstream.BloodSolution == null)
+            // Ensure ChemicalSolution exists
+            if (bloodstream.ChemicalSolution == null)
                 return false;
 
-            var solutionComponent = args.EntityManager.GetComponent<SolutionComponent>(bloodstream.BloodSolution.Value);
+            // Use EntityManager to get the SolutionComponent from the ChemicalSolution entity
+            var solutionComponent = args.EntityManager.GetComponent<SolutionComponent>(bloodstream.ChemicalSolution.Value);
             var solution = solutionComponent.Solution;  // Access the Solution object
 
             var quant = FixedPoint2.Zero;
+
+            // Convert the reagent string to a ReagentId (now with null as the second parameter)
             if (Reagent != null)
             {
-                var reagentId = new ReagentId(Reagent, null);
+                var reagentId = new ReagentId(Reagent, null); // Pass null for the second parameter
 
-                if (solution.ContainsReagent(reagentId))
+                if (solution.ContainsReagent(reagentId))  // Use ReagentId
                 {
-                    quant = solution.GetReagentQuantity(reagentId);
+                    quant = solution.GetReagentQuantity(reagentId);  // Use ReagentId
                 }
             }
 

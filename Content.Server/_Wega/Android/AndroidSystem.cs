@@ -1,5 +1,6 @@
 using Content.Server.Actions;
 using Content.Server.Popups;
+using Content.Server.PowerCell;
 using Content.Server.Stunnable;
 using Content.Shared.Android;
 using Content.Shared.Alert;
@@ -166,17 +167,19 @@ public sealed partial class AndroidSystem : SharedAndroidSystem
 
     private void UpdateBatteryAlert(Entity<AndroidComponent> ent, PowerCellSlotComponent? slotComponent = null)
     {
-        if (!_powerCell.TryGetBatteryFromSlot(ent.Owner, out var battery))
+        if (!_powerCell.TryGetBatteryFromSlot(ent, out var battery, slotComponent))
         {
             _alerts.ClearAlert(ent.Owner, ent.Comp.BatteryAlert);
             _alerts.ShowAlert(ent.Owner, ent.Comp.NoBatteryAlert);
             return;
         }
 
-        var chargePercent = (short)MathF.Round(battery.Value.Comp.LastCharge / battery.Value.Comp.MaxCharge * 10f);
+        var chargePercent = (short)MathF.Round(battery.CurrentCharge / battery.MaxCharge * 10f);
 
-        if (chargePercent == 0 && _powerCell.HasDrawCharge(ent.Owner))
+        if (chargePercent == 0 && _powerCell.HasDrawCharge(ent, cell: slotComponent))
+        {
             chargePercent = 1;
+        }
 
         _alerts.ClearAlert(ent.Owner, ent.Comp.NoBatteryAlert);
         _alerts.ShowAlert(ent.Owner, ent.Comp.BatteryAlert, chargePercent);

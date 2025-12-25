@@ -179,10 +179,7 @@
   - type: Lock
     unlockOnClick: false
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Tyrium
-        Quantity: 300
+    bloodReagent: Tyrium
     bleedReductionAmount: 0
     bloodRefreshAmount: 0
   - type: Android

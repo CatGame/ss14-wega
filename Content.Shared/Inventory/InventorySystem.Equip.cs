@@ -168,7 +168,7 @@ public abstract partial class InventorySystem
                 target,
                 itemUid)
             {
-                BreakOnMove = !clothing.EquipWhileMoving,
+                BreakOnMove = true,
                 NeedHand = true,
             };
 
@@ -275,7 +275,7 @@ public abstract partial class InventorySystem
         }
 
         if (_whitelistSystem.IsWhitelistFail(slotDefinition.Whitelist, itemUid) ||
-            _whitelistSystem.IsWhitelistPass(slotDefinition.Blacklist, itemUid))
+            _whitelistSystem.IsBlacklistPass(slotDefinition.Blacklist, itemUid))
         {
             reason = "inventory-component-can-equip-does-not-fit";
             return false;
@@ -439,7 +439,7 @@ public abstract partial class InventorySystem
                 target,
                 removedItem.Value)
             {
-                BreakOnMove = !clothing.EquipWhileMoving,
+                BreakOnMove = true,
                 NeedHand = true,
             };
 

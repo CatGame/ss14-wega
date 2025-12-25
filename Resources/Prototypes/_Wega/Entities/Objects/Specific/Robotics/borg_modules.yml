@@ -73,8 +73,8 @@
   - type: BorgModuleIcon
     icon: { sprite: _Wega/Interface/Actions/actions_borg.rsi, state: surgery-module }
 
-# Cargo Module
-
+# Cargo Module    
+    
 - type: entity
   id: BorgModuleKinetic
   parent: [ BaseBorgModuleCargo, BaseProviderBorgModule ]
@@ -132,7 +132,7 @@
     - item: Syringe
   - type: BorgModuleIcon
     icon: { sprite: _Wega/Interface/Actions/actions_borg.rsi, state: medical-common-module }
-
+    
 - type: entity
   id: BorgModuleCommonPen
   parent: [ BaseBorgModule, BaseProviderBorgModule ]
@@ -229,7 +229,7 @@
           tags:
           - ConstructionMaterial
     - hand:
-        emptyRepresentative:
+        emptyRepresentative: 
         emptyLabel: borg-slot-flatpacks-empty
         whitelist:
           components:
@@ -319,7 +319,7 @@
           - Fruit
   - type: BorgModuleIcon
     icon: { sprite: _Wega/Interface/Actions/actions_borg.rsi, state: cook-module }
-
+    
 - type: entity
   id: BorgModuleBar
   parent: [ BaseBorgModuleService, BaseProviderBorgModule ]
@@ -344,7 +344,7 @@
     - item: BarSpoon
   - type: BorgModuleIcon
     icon: { sprite: _Wega/Interface/Actions/actions_borg.rsi, state: bar-module }
-
+    
 # Security module
 
 - type: entity
@@ -515,7 +515,7 @@
     sprite: Objects/Weapons/Guns/Basic/kinetic_accelerator.rsi
     size: Large
     shape:
-    - 0,0,2,1
+    - 0,0,2,1   
   - type: Gun
     fireRate: 0.5
     selectedMode: SemiAuto
@@ -560,7 +560,7 @@
   components:
   - type: Stunbaton
     energyPerUse: 60
-  - type: PredictedBattery
+  - type: Battery
     maxCharge: 360
     startingCharge: 360
   - type: BatterySelfRecharger
@@ -600,10 +600,10 @@
     sprite: _Wega/Objects/Weapons/Guns/Battery/borggun.rsi
     layers:
     - state: icon
-  - type: PredictedBattery
+  - type: Battery
     maxCharge: 1000
     startingCharge: 1000
-  - type: BatteryAmmoProvider
+  - type: ProjectileBatteryAmmoProvider
     proto: BulletDisabler
     fireCost: 62.5
   - type: BatterySelfRecharger
@@ -636,10 +636,10 @@
     sprite: _Wega/Objects/Weapons/Guns/Battery/borggun.rsi
     storedOffset: 0,-4
   - type: Appearance
-  - type: BatteryAmmoProvider
+  - type: ProjectileBatteryAmmoProvider
     proto: BulletLaserAdvanced
     fireCost: 100
-  - type: PredictedBattery
+  - type: Battery
     maxCharge: 1000
     startingCharge: 1000
   - type: BatterySelfRecharger
@@ -647,12 +647,12 @@
     autoRechargeRate: 10
     autoRechargePauseTime: 40
   - type: AmmoCounter
-
+ 
 # Common-fight
 - type: entity
   parent: WeaponMeleeNeedle
   id: WeaponMeleeNeedleBorg
-  name: security damage stick
+  name: security damage stick 
   description: A specialty weapon used in the destruction of unique syndicate morale-boosting equipment.
   components:
   - type: MeleeWeapon
@@ -665,7 +665,7 @@
       types:
         Piercing: 0
 
-# mining-common
+# mining-common 
 - type: entity
   name: pickaxe
   parent: BaseItem
@@ -729,7 +729,7 @@
     - WantedListCartridge
     - LogProbeCartridge
 
-# grenader
+# grenader 
 - type: entity
   name: rg 430
   parent: BaseStorageItem
@@ -903,7 +903,7 @@
           Piercing: 0.7
       activeBlockModifier:
         coefficients:
-          Piercing: 1
+          Piercing: 1   
     - type: Destructible
       thresholds:
         - trigger:

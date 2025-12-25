@@ -145,10 +145,8 @@
     rules: ghost-role-information-construct-rules
   - type: Speech
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Blood
-        Quantity: 75
+    bloodMaxVolume: 75
+    bloodReagent: Blood
     bloodlossDamage:
       types:
         Bloodloss:
@@ -193,7 +191,7 @@
       170: 0.7
       220: 0.5
   - type: Stamina
-    baseCritThreshold: 300
+    critThreshold: 300
   - type: MovementSpeedModifier
     baseWalkSpeed : 2.4
     baseSprintSpeed : 3.8
@@ -267,7 +265,7 @@
       70: 0.8
       85: 0.5
   - type: Stamina
-    baseCritThreshold: 150
+    critThreshold: 150
   - type: MovementSpeedModifier
     baseWalkSpeed : 3.5
     baseSprintSpeed : 4.9
@@ -331,7 +329,7 @@
     speedModifierThresholds:
       40: 0.8
   - type: Stamina
-    baseCritThreshold: 80
+    critThreshold: 80
   - type: MovementSpeedModifier
     baseWalkSpeed : 3.5
     baseSprintSpeed : 4.5
@@ -401,7 +399,7 @@
       100: 0.9
       130: 0.7
   - type: Stamina
-    baseCritThreshold: 300
+    critThreshold: 300
   - type: MovementSpeedModifier
     baseWalkSpeed : 3.5
     baseSprintSpeed : 4.8
@@ -469,7 +467,7 @@
       70: 0.8
       85: 0.5
   - type: Stamina
-    baseCritThreshold: 100
+    critThreshold: 100
   - type: MovementSpeedModifier
     baseWalkSpeed : 3.5
     baseSprintSpeed : 4.6

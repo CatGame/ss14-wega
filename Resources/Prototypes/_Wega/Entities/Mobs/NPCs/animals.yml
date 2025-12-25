@@ -174,10 +174,7 @@
   - type: Body
     prototype: Stokkey
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: AmmoniaBlood
-        Quantity: 150
+    bloodReagent: AmmoniaBlood
 
 - type: entity
   name: wolpin

@@ -18,7 +18,6 @@ public sealed class BatteryWeaponFireModesSystem : EntitySystem
     [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
     [Dependency] private readonly AccessReaderSystem _accessReaderSystem = default!;
     [Dependency] private readonly SharedAppearanceSystem _appearanceSystem = default!;
-    [Dependency] private readonly SharedGunSystem _gun = default!;
     [Dependency] private readonly SharedItemSystem _item = default!; // Corvax-Wega-MagVisuals
 
     public override void Initialize()
@@ -143,14 +142,39 @@ public sealed class BatteryWeaponFireModesSystem : EntitySystem
                 _popupSystem.PopupClient(Loc.GetString("gun-set-fire-mode", ("mode", prototype.Name)), uid, user.Value);
         }
 
-        if (TryComp(uid, out BatteryAmmoProviderComponent? batteryAmmoProviderComponent))
+        if (TryComp(uid, out ProjectileBatteryAmmoProviderComponent? projectileBatteryAmmoProviderComponent))
         {
-            batteryAmmoProviderComponent.Prototype = fireMode.Prototype;
-            batteryAmmoProviderComponent.FireCost = fireMode.FireCost;
+            // TODO: Have this get the info directly from the batteryComponent when power is moved to shared.
+            var OldFireCost = projectileBatteryAmmoProviderComponent.FireCost;
+            projectileBatteryAmmoProviderComponent.Prototype = fireMode.Prototype;
+            projectileBatteryAmmoProviderComponent.FireCost = fireMode.FireCost;
 
-            Dirty(uid, batteryAmmoProviderComponent);
+            float FireCostDiff = (float)fireMode.FireCost / (float)OldFireCost;
+            projectileBatteryAmmoProviderComponent.Shots = (int)Math.Round(projectileBatteryAmmoProviderComponent.Shots / FireCostDiff);
+            projectileBatteryAmmoProviderComponent.Capacity = (int)Math.Round(projectileBatteryAmmoProviderComponent.Capacity / FireCostDiff);
 
-            _gun.UpdateShots((uid, batteryAmmoProviderComponent));
+            Dirty(uid, projectileBatteryAmmoProviderComponent);
+
+            var updateClientAmmoEvent = new UpdateClientAmmoEvent();
+            RaiseLocalEvent(uid, ref updateClientAmmoEvent);
         }
+
+        // Corvax-Wega-HitscanBattery-start
+        if (TryComp(uid, out HitscanBatteryAmmoProviderComponent? hitscanBatteryAmmoProviderComponent))
+        {
+            var OldFireCost = hitscanBatteryAmmoProviderComponent.FireCost;
+            hitscanBatteryAmmoProviderComponent.HitscanEntityProto = fireMode.Prototype;
+            hitscanBatteryAmmoProviderComponent.FireCost = fireMode.FireCost;
+
+            float FireCostDiff = (float)fireMode.FireCost / (float)OldFireCost;
+            hitscanBatteryAmmoProviderComponent.Shots = (int)Math.Round(hitscanBatteryAmmoProviderComponent.Shots / FireCostDiff);
+            hitscanBatteryAmmoProviderComponent.Capacity = (int)Math.Round(hitscanBatteryAmmoProviderComponent.Capacity / FireCostDiff);
+
+            Dirty(uid, hitscanBatteryAmmoProviderComponent);
+
+            var updateClientAmmoEvent = new UpdateClientAmmoEvent();
+            RaiseLocalEvent(uid, ref updateClientAmmoEvent);
+        }
+        // Corvax-Wega-HitscanBattery-end
     }
 }

@@ -206,11 +206,7 @@ namespace Content.Server.Xenobiology
 
             if (TryComp<BloodstreamComponent>(slime, out var bloodstream))
             {
-                if (bloodstream.BloodReferenceSolution.Contents.Count > 0)
-                {
-                    var reagentQuantity = bloodstream.BloodReferenceSolution.Contents[0];
-                    component.BloodReagent = reagentQuantity.Reagent.Prototype;
-                }
+                component.BloodReagent = bloodstream.BloodReagent;
             }
 
             foreach (var item in _inventory.GetHandOrInventoryEntities(slime))

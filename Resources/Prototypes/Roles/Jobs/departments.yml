@@ -18,6 +18,7 @@
   roles:
   - Bartender
   - Botanist
+  - Boxer
   - Chaplain
   - Chef
   - Clown
@@ -30,6 +31,7 @@
   - Passenger
   - Reporter
   - Visitor
+  - Zookeeper
   - ServiceWorker
   - Barber # Corvax-Wega-Barber
 
@@ -150,7 +152,9 @@
   color: "#9FED58"
   weight: 10
   roles:
+  - Boxer
   - Reporter
+  - Zookeeper
   - Psychologist
   - Pilot # Corvax-Pilot
   - Barber # Corvax-Wega-Barber

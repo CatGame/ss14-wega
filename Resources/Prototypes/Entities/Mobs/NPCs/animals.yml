@@ -51,10 +51,7 @@
     weight: 0.050 # Corvax-Wega-Add
     flavorKind: station-event-random-sentience-flavor-organic
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Blood
-        Quantity: 50
+    bloodMaxVolume: 50
   - type: ReplacementAccent
     accent: mouse
   - type: MeleeWeapon
@@ -116,7 +113,7 @@
       0: Alive
       10: Dead
   - type: Stamina
-    baseCritThreshold: 10
+    critThreshold: 10
     animationThreshold: 1
   - type: DamageStateVisuals
     states:
@@ -144,10 +141,8 @@
     - Bee
     - Trash
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: InsectBlood
-        Quantity: 0.1
+    bloodReagent: InsectBlood
+    bloodMaxVolume: 0.1
   - type: MobPrice
     price: 50
   - type: NPCRetaliation
@@ -193,10 +188,7 @@
     factions:
     - SimpleHostile
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Blood
-        Quantity: 0.1
+    bloodMaxVolume: 0.1
   - type: ZombieImmune
 
 
@@ -270,10 +262,7 @@
     interactSuccessSound:
       path: /Audio/Animals/chicken_cluck_happy.ogg
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Blood
-        Quantity: 100
+    bloodMaxVolume: 100
   - type: EggLayer
     eggSpawn:
     - id: FoodEgg
@@ -401,10 +390,8 @@
       Dead:
         Base: cockroach_dead
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: InsectBlood
-        Quantity: 20
+    bloodReagent: InsectBlood
+    bloodMaxVolume: 20
   - type: Edible
   - type: FlavorProfile
     flavors:
@@ -573,10 +560,7 @@
     damageContainer: Biological
     damageModifierSet: Moth
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: InsectBlood
-        Quantity: 20
+    bloodReagent: InsectBlood
   - type: Respirator
     damage:
       types:
@@ -733,10 +717,7 @@
     interactSuccessSound:
       path: /Audio/Animals/duck_quack_happy.ogg
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Blood
-        Quantity: 100
+    bloodMaxVolume: 100
   - type: EggLayer
     eggSpawn:
     - id: FoodEgg
@@ -865,10 +846,8 @@
     tags:
     - Trash
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: InsectBlood
-        Quantity: 0.1
+    bloodReagent: InsectBlood
+    bloodMaxVolume: 0.1
   - type: MobPrice
     price: 50
   - type: Destructible
@@ -1029,10 +1008,8 @@
   - type: ReplacementAccent
     accent: crab
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: CopperBlood
-        Quantity: 50
+    bloodMaxVolume: 50
+    bloodReagent: CopperBlood
   - type: Tag
     tags:
     - VimPilot
@@ -1190,10 +1167,7 @@
     interactSuccessSound:
       path: /Audio/Animals/goose_honk.ogg
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Blood
-        Quantity: 100
+    bloodMaxVolume: 100
   - type: NpcFactionMember
     factions:
     - Passive
@@ -1235,10 +1209,7 @@
     - id: FoodMeat
       amount: 4
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Blood
-        Quantity: 300
+    bloodMaxVolume: 300
     # if you fuck with the gorilla he will harambe you
   - type: MeleeWeapon
     soundHit:
@@ -1490,7 +1461,6 @@
       effects:
       - !type:WashCreamPie
   - type: Crawler
-  - type: StatusIcon
   - type: VentCrawler # Corvax-Wega-VentCrawling
   # Corvax-Wega-Surgery-start
   - type: Operated
@@ -1935,10 +1905,7 @@
       types:
         Piercing: 0
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Blood
-        Quantity: 50
+    bloodMaxVolume: 50
   - type: CanEscapeInventory
    # Corvax-Wega-Disease-start
   - type: DiseaseCarrier #The other class lab animal and disease vector
@@ -2083,10 +2050,7 @@
   - type: RadiationSource
     intensity: 0.3
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: UnstableMutagen
-        Quantity: 50
+    bloodReagent: UnstableMutagen
   - type: SolutionContainerManager
     solutions:
       food:
@@ -2152,10 +2116,7 @@
     interactSuccessSound:
       path: /Audio/Animals/lizard_happy.ogg
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Blood
-        Quantity: 150
+    bloodMaxVolume: 150
   - type: Damageable
     damageContainer: Biological
     damageModifierSet: Scale
@@ -2209,10 +2170,7 @@
     interactFailureString: petting-failure-generic
     interactSuccessSpawn: EffectHearts
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Blood
-        Quantity: 50
+    bloodMaxVolume: 50
   - type: VentCrawler # Corvax-Wega-VentCrawling
 
 - type: entity
@@ -2269,10 +2227,7 @@
     interactSuccessSound:
       path: /Audio/Animals/frog_ribbit.ogg
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Blood
-        Quantity: 50
+    bloodMaxVolume: 50
   - type: Tag
     tags:
     - VimPilot
@@ -2364,10 +2319,7 @@
     interactSuccessSound:
       path: /Audio/Animals/parrot_raught.ogg
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Blood
-        Quantity: 50
+    bloodMaxVolume: 50
   # Corvax-Wega-Genetics-start
   - type: DnaModifier
     upper: MobHarpy
@@ -2560,10 +2512,7 @@
     interactFailureString: petting-failure-generic
     interactSuccessSpawn: EffectHearts
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Blood
-        Quantity: 50
+    bloodMaxVolume: 50
   - type: Damageable
     damageContainer: Biological
     damageModifierSet: Scale
@@ -2627,10 +2576,8 @@
   - type: Spider
   - type: IgnoreSpiderWeb
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: CopperBlood
-        Quantity: 150
+    bloodMaxVolume: 150
+    bloodReagent: CopperBlood
   - type: Speech
     speechVerb: Arachnid
     speechSounds: Arachnid
@@ -2786,10 +2733,9 @@
     - type: Speech
       speechVerb: Cluwne
     - type: Bloodstream
-      bloodReferenceSolution:
-        reagents:
-        - ReagentId: Laughter
-          Quantity: 150
+      bloodMaxVolume: 150
+      bloodReagent: Laughter
+
 - type: entity
   name: wizard spider
   parent: MobGiantSpider
@@ -2985,10 +2931,7 @@
     attributes:
       gender: epicene
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Blood
-        Quantity: 100
+    bloodMaxVolume: 100
   - type: MeleeWeapon
     angle: 0
     animation: WeaponArcBite
@@ -3121,10 +3064,7 @@
     attributes:
       gender: epicene
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: DemonsBlood
-        Quantity: 150
+    bloodReagent: DemonsBlood
   - type: Damageable
     damageContainer: BiologicalMetaphysical
     damageModifierSet: Infernal
@@ -3654,10 +3594,7 @@
     interactSuccessSound:
       path: /Audio/Animals/fox_squeak.ogg
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Blood
-        Quantity: 60
+    bloodMaxVolume: 60
   - type: CanEscapeInventory
     baseResistTime: 3
   - type: MobPrice
@@ -3777,10 +3714,8 @@
     speciesId: cat
     templateId: pet
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Sap
-        Quantity: 60
+    bloodReagent: Sap
+    bloodMaxVolume: 60
   - type: DamageStateVisuals
     states:
       Alive:
@@ -3891,10 +3826,7 @@
     - id: FoodMeat
       amount: 4
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: Blood
-        Quantity: 300
+    bloodMaxVolume: 300
     # Horns though
   - type: MeleeWeapon
     damage:

@@ -66,10 +66,7 @@
     prototype: Resomi
     requiredLegs: 2
   - type: Bloodstream
-    bloodReferenceSolution:
-      reagents:
-      - ReagentId: ResomiBlood
-        Quantity: 300
+    bloodReagent: ResomiBlood
     bloodlossDamage:
       types:
         Bloodloss: 1 # They take more damage because they have low blood.
