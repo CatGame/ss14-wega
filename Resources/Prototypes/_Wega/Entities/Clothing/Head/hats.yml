@@ -154,6 +154,19 @@
 
 - type: entity
   parent: ClothingHeadBase
+  id: ClothingHeadHatCatEarsMelon
+  name: catmelon ears
+  description: "NYAH!"
+  components:
+  - type: Sprite
+    sprite: _Wega/Clothing/Head/Hats/catmelon_erars.rsi
+  - type: Clothing
+    sprite: _Wega/Clothing/Head/Hats/catmelon_erars.rsi
+  - type: AddAccentClothing
+    accent: OwOAccent
+
+- type: entity
+  parent: ClothingHeadBase
   id: ClothingHeadHatNewYearRed
   name: red new year hat
   description: "The holiday is coming, the holiday is coming!"
