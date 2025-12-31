@@ -274,3 +274,6 @@
 
 - type: Tag
   id: Lollipops
+
+- type: Tag
+  id: CardTarot

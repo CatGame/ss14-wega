@@ -52,6 +52,9 @@
   - type: GameRule
     minPlayers: 30
   - type: BloodCultRule
+  - type: AntagObjectives
+    objectives:
+      - BloodCultRitualObjective
   - type: AntagSelection
     definitions:
       - prefRoles: [ BloodCultist ]
@@ -66,9 +69,13 @@
         lateJoinAdditional: true
         components:
         - type: BloodCultist
+        - type: MindLink
+          channels: ["MindBloodCult"]
         - type: NpcFactionMember
           factions:
           - BloodCult
+        - type: FriendlyFaction
+          faction: BloodCult
         mindRoles:
         - MindRoleBloodCultist
         briefing:
