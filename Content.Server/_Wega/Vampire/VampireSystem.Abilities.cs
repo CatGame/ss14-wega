@@ -45,6 +45,7 @@ using Robust.Shared.Map.Components;
 using Robust.Shared.Network;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Systems;
+using Robust.Shared.Physics.Events;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
@@ -54,6 +55,14 @@ using Content.Shared.Flash.Components;
 using Content.Shared.NullRod.Components;
 using Content.Shared.Surgery.Components;
 using Content.Shared.StatusEffectNew;
+using Content.Shared.Stunnable;
+using Content.Shared.Shaders;
+using Content.Shared.Emp;
+using Content.Shared.Chemistry.Components.SolutionManager;
+using Content.Shared.Chemistry.EntitySystems;
+using Content.Server.Chemistry.EntitySystems;
+using Content.Server.Chemistry.Containers.EntitySystems;
+using Content.Shared.Movement.Pulling.Components;
 
 namespace Content.Server.Vampire;
 
@@ -78,6 +87,7 @@ public sealed partial class VampireSystem
     [Dependency] private readonly SharedStaminaSystem _stamina = default!;
     [Dependency] private readonly NavMapSystem _navMap = default!;
     [Dependency] private readonly MovementModStatusSystem _movementMod = default!;
+	[Dependency] private readonly SharedEmpSystem _emp = default!;
 
     private static readonly EntProtoId RejuvenateAdvanced = "ActionVampireRejuvenateAdvanced";
 
@@ -119,6 +129,7 @@ public sealed partial class VampireSystem
         SubscribeLocalEvent<VampireComponent, VampireOverwhelmingForceActionEvent>(OnOverwhelmingForce);
         SubscribeLocalEvent<VampireComponent, VampireDemonicGraspActionEvent>(OnDemonicGrasp);
         SubscribeLocalEvent<VampireComponent, VampireChargeActionEvent>(OnCharge);
+		SubscribeLocalEvent<VampireComponent, StartCollideEvent>(OnVampireCollide);
 
         // Dantalion
         SubscribeLocalEvent<VampireComponent, MaxThrallCountUpdateEvent>(MaxThrallCountUpdate);
@@ -131,6 +142,8 @@ public sealed partial class VampireSystem
         SubscribeLocalEvent<VampireComponent, VampireRallyThrallsActionEvent>(OnRallyThralls);
         SubscribeLocalEvent<VampireComponent, VampireBloodBondActionEvent>(OnBloodBond);
         SubscribeLocalEvent<VampireComponent, VampireMassHysteriaActionEvent>(OnMassHysteria);
+		SubscribeLocalEvent<VampireComponent, VampireThrallHealActionEvent>(OnThrallHeal);
+		SubscribeLocalEvent<VampireComponent, VampirePacifyNearbyActionEvent>(OnPacifyNearby);
     }
 
     #region Select Class
@@ -178,6 +191,14 @@ public sealed partial class VampireSystem
         if (args.SelectedClass is "Gargantua")
         {
             ReplaceVampireRejuvenateAction(uid);
+        }
+        if (args.SelectedClass is "Umbrae")
+        {
+            var nightvision = EnsureComp<NaturalNightVisionComponent>(uid);
+			nightvision.VisionRadius = 12;
+			nightvision.TintColor = Color.FromHex("#663ca3");
+			Dirty(uid, nightvision);
+
         }
     }
 
@@ -391,6 +412,10 @@ public sealed partial class VampireSystem
 
             if (TryComp(humanoid, out TransformComponent? transform))
             {
+				if (!TryComp<MobStateComponent>(humanoid, out var mobState))
+					continue;
+				if (mobState.CurrentState != MobState.Alive && mobState.CurrentState != MobState.PreCritical) /// Я хочу СВЕЖЕЙ крови.
+					continue;
                 Spawn(args.Proto, transform.Coordinates);
                 _audio.PlayPvs(args.Sound, humanoid);
                 _popup.PopupEntity(Loc.GetString("vampire-predator-senses-puddle"), humanoid, uid, PopupType.SmallCaution);
@@ -517,11 +542,14 @@ public sealed partial class VampireSystem
         if (component.PowerActive)
         {
             component.PowerActive = false;
+			_alerts.ShowAlert(uid, "AlertBloodRite", 0);
             args.Handled = true;
             return;
         }
-
-        component.PowerActive = true;
+		
+		component.PowerActive = true;
+		_alerts.ShowAlert(uid, "AlertBloodRite", 1);
+		
         _popup.PopupEntity(Loc.GetString("vampire-blood-true-power-started"), uid, uid, PopupType.SmallCaution);
 
         bool bloodSpawned = false;
@@ -534,17 +562,19 @@ public sealed partial class VampireSystem
             if (Deleted(uid) || !component.PowerActive)
             {
                 component.PowerActive = false;
+				_alerts.ShowAlert(uid, "AlertBloodRite", 0);
                 return;
             }
 
-            if (component.CurrentBlood < 10)
+            if (component.CurrentBlood < 5)
             {
                 _popup.PopupEntity(Loc.GetString("vampire-blood-sacrifice-insufficient-blood"), uid, uid, PopupType.SmallCaution);
                 component.PowerActive = false;
+				_alerts.ShowAlert(uid, "AlertBloodRite", 0);
                 return;
             }
 
-            SubtractBloodEssence(uid, 10);
+            SubtractBloodEssence(uid, 5);
 
             var mapCoords = _transform.GetMapCoordinates(uid);
             var nearbyEntities = _entityLookup.GetEntitiesInRange<BodyComponent>(mapCoords, 7f)
@@ -587,9 +617,10 @@ public sealed partial class VampireSystem
         }
 
         ExecuteTick();
-        SubtractBloodEssence(uid, 10);
-        args.Handled = true;
+        SubtractBloodEssence(uid, 30);
+		/// args.Handled не будет, чтобы не было кд. Логика - после включения кд для выключения нет, а после выключения есть.
     }
+
     #endregion
 
     #region Umbrae Abilities
@@ -735,11 +766,14 @@ public sealed partial class VampireSystem
     private void OnVampireDarkPassage(EntityUid uid, VampireComponent component, VampireDarkPassageActionEvent args)
     {
         var targetCoords = args.Target;
-        if (!_interaction.InRangeUnobstructed(uid, targetCoords, range: 1000F, collisionMask: CollisionGroup.Impassable, popup: false))
-        {
-            _popup.PopupEntity(Loc.GetString("vampire-teleport-failed"), uid, uid, PopupType.Small);
-            return;
-        }
+		if (!component.TruePowerActive)
+		{
+			if (!_interaction.InRangeUnobstructed(uid, targetCoords, range: 1000F, collisionMask: CollisionGroup.Impassable, popup: false))
+			{
+				_popup.PopupEntity(Loc.GetString("vampire-teleport-failed"), uid, uid, PopupType.Small);
+				return;
+			}
+		}
 
         if (!CheckBloodEssence(uid, 30))
         {
@@ -779,6 +813,8 @@ public sealed partial class VampireSystem
 
             _damage.TryChangeDamage(lightEntity.Owner, damage, ignoreResistances: true, origin: uid);
         }
+		
+		_emp.EmpPulse(originCoords, 4, 5000, TimeSpan.FromSeconds(30), uid);
 
         args.Handled = true;
     }
@@ -816,11 +852,13 @@ public sealed partial class VampireSystem
         if (component.PowerActive)
         {
             component.PowerActive = false;
+			_alerts.ClearAlert(uid, "AlertEternalDarkness");
             RaiseNetworkEvent(new VampireToggleFovEvent(netEntity));
             args.Handled = true;
             return;
         }
 
+		_alerts.ShowAlert(uid, "AlertEternalDarkness", 0);
         component.PowerActive = true;
         RaiseNetworkEvent(new VampireToggleFovEvent(netEntity));
         _popup.PopupEntity(Loc.GetString("vampire-blood-true-power-started"), uid, uid, PopupType.SmallCaution);
@@ -829,6 +867,7 @@ public sealed partial class VampireSystem
         {
             if (Deleted(uid) || !component.PowerActive)
             {
+				_alerts.ClearAlert(uid, "AlertEternalDarkness");
                 component.PowerActive = false;
                 args.Handled = true;
                 return;
@@ -839,6 +878,7 @@ public sealed partial class VampireSystem
                 _popup.PopupEntity(Loc.GetString("vampire-blood-sacrifice-insufficient-blood"), uid, uid, PopupType.SmallCaution);
                 component.PowerActive = false;
                 RaiseNetworkEvent(new VampireToggleFovEvent(netEntity));
+				_alerts.ClearAlert(uid, "AlertEternalDarkness");
                 return;
             }
 
@@ -935,13 +975,27 @@ public sealed partial class VampireSystem
 
             _speed.ChangeBaseSpeed(uid, originalWalkSpeed * 2, originalSprintSpeed * 2, speedmodComponent.Acceleration, speedmodComponent);
 
-            Timer.Spawn(10000, () =>
-            {
-                if (TryComp(uid, out MovementSpeedModifierComponent? speedmodComponentAfter))
-                {
-                    _speed.ChangeBaseSpeed(uid, originalWalkSpeed, originalSprintSpeed, speedmodComponent.Acceleration, speedmodComponentAfter);
-                }
-            });
+			if (component.TruePowerActive)
+			{
+				Timer.Spawn(20000, () =>
+				{
+					if (TryComp(uid, out MovementSpeedModifierComponent? speedmodComponentAfter))
+					{
+						_speed.ChangeBaseSpeed(uid, originalWalkSpeed, originalSprintSpeed, speedmodComponent.Acceleration, speedmodComponentAfter);
+					}
+				});
+			}
+			
+            else
+			{
+				Timer.Spawn(10000, () =>
+				{
+					if (TryComp(uid, out MovementSpeedModifierComponent? speedmodComponentAfter))
+					{
+						_speed.ChangeBaseSpeed(uid, originalWalkSpeed, originalSprintSpeed, speedmodComponent.Acceleration, speedmodComponentAfter);
+					}
+				});
+			}
         }
 
         SubtractBloodEssence(uid, 15);
@@ -1053,33 +1107,41 @@ public sealed partial class VampireSystem
             _popup.PopupEntity(Loc.GetString("vampire-legs-ensnared"), uid, uid, PopupType.Medium);
             return;
         }
-
-        if (!CheckBloodEssence(uid, 10))
-        {
-            _popup.PopupEntity(Loc.GetString("vampire-blood-sacrifice-insufficient-blood"), uid, uid, PopupType.SmallCaution);
-            return;
-        }
+		
+		if (!HasComp<PryingComponent>(uid) && HasComp<PullableComponent>(uid))
+		{
+			if (!CheckBloodEssence(uid, 80))
+			{	
+				_popup.PopupEntity(Loc.GetString("vampire-blood-sacrifice-insufficient-blood"), uid, uid, PopupType.SmallCaution);
+				return;
+			}
+		}	
 
         if (_entityManager.HasComponent<PryingComponent>(uid))
         {
             _entityManager.RemoveComponent<PryingComponent>(uid);
             _entityManager.AddComponent<EnsnareableComponent>(uid);
+			_entityManager.AddComponent<PullableComponent>(uid);
         }
         else
         {
             var pryComponent = _entityManager.AddComponent<PryingComponent>(uid);
             pryComponent.PryPowered = true;
             pryComponent.Force = true;
-            pryComponent.SpeedModifier = 1.5f;
+            pryComponent.SpeedModifier = 2.5f;
             pryComponent.UseSound = new SoundPathSpecifier("/Audio/Items/crowbar.ogg");
+			SubtractBloodEssence(uid, 80);
 
             if (_entityManager.HasComponent<EnsnareableComponent>(uid))
             {
                 _entityManager.RemoveComponent<EnsnareableComponent>(uid);
             }
+            if (_entityManager.HasComponent<PullableComponent>(uid))
+            {
+                _entityManager.RemoveComponent<PullableComponent>(uid);
+            }
         }
 
-        SubtractBloodEssence(uid, 10);
         args.Handled = true;
     }
 
@@ -1121,69 +1183,97 @@ public sealed partial class VampireSystem
     }
 
     private void OnCharge(EntityUid uid, VampireComponent component, VampireChargeActionEvent args)
-    {
-        if (!TryComp(uid, out TransformComponent? vampireTransform))
-            return;
+	{
+		if (!TryComp(uid, out TransformComponent? vampireTransform))
+			return;
 
-        if (TryComp(uid, out EnsnareableComponent? ensnareable) && ensnareable.IsEnsnared)
-        {
-            _popup.PopupEntity(Loc.GetString("vampire-legs-ensnared"), uid, uid, PopupType.Medium);
-            return;
-        }
+		if (TryComp(uid, out EnsnareableComponent? ensnareable) && ensnareable.IsEnsnared)
+		{
+			_popup.PopupEntity(Loc.GetString("vampire-legs-ensnared"), uid, uid, PopupType.Medium);
+			return;
+		}
 
-        if (!CheckBloodEssence(uid, 30))
-        {
-            _popup.PopupEntity(Loc.GetString("vampire-blood-sacrifice-insufficient-blood"), uid, uid, PopupType.SmallCaution);
-            return;
-        }
+		if (!CheckBloodEssence(uid, 30))
+		{
+			_popup.PopupEntity(Loc.GetString("vampire-blood-sacrifice-insufficient-blood"), uid, uid, PopupType.SmallCaution);
+			return;
+		}
 
-        var coords = args.Target;
-        var transformSystem = _entityManager.System<SharedTransformSystem>();
-        var vampirePosition = _transform.GetWorldPosition(uid);
-        var targetPosition = transformSystem.ToMapCoordinates(coords, true).Position;
-        var direction = (targetPosition - vampirePosition).Normalized();
+		var coords = args.Target;
+		var transformSystem = _entityManager.System<SharedTransformSystem>();
+		var vampirePosition = _transform.GetWorldPosition(uid);
+		var targetPosition = transformSystem.ToMapCoordinates(coords, true).Position;
+		var direction = (targetPosition - vampirePosition).Normalized();
 
-        if (TryComp(uid, out PhysicsComponent? vampirePhysics))
-            _physics.ApplyLinearImpulse(uid, direction * 20000f, body: vampirePhysics);
+		if (TryComp(uid, out PhysicsComponent? vampirePhysics))
+			_physics.ApplyLinearImpulse(uid, direction * 16000f, body: vampirePhysics);
 
-        if (args.Entity is not { } targetEntity)
-        {
-            _audio.PlayPvs(args.Sound, uid);
-            SubtractBloodEssence(uid, 30);
-            args.Handled = true;
-            return;
-        }
+		component.AlreadyHit.Clear();
+		component.IsCharging = true;
 
-        if (HasComp<NullRodOwnerComponent>(targetEntity) && !component.TruePowerActive)
-            return;
+		Timer.Spawn(TimeSpan.FromSeconds(0.2), () =>
+		{
+			if (!Deleted(uid))
+				component.IsCharging = false;
+		});
 
-        if (_entityManager.TryGetComponent(targetEntity, out DestructibleComponent? _))
-        {
-            var damage = new DamageSpecifier { DamageDict = { { "Structural", 150 } } };
-            _damage.TryChangeDamage(targetEntity, damage, origin: uid);
-        }
+		_audio.PlayPvs(args.Sound, uid);
+		SubtractBloodEssence(uid, 30);
+		args.Handled = true;
+	}
+	
+	private void OnVampireCollide(EntityUid uid, VampireComponent component, StartCollideEvent args)
+	{
 
-        if (_entityManager.TryGetComponent(targetEntity, out BodyComponent? _))
-        {
-            var damage = new DamageSpecifier { DamageDict = { { "Blunt", 60 } } };
-            _damage.TryChangeDamage(targetEntity, damage, ignoreResistances: false, origin: uid);
+		if (!component.IsCharging)
+			return;
 
-            if (_entityManager.TryGetComponent(targetEntity, out PhysicsComponent? physics))
-                _physics.ApplyLinearImpulse(targetEntity, direction * 1000f, body: physics);
+		var target = args.OtherEntity;
+		if (target == uid)
+			return;
 
-            _stun.TryUpdateParalyzeDuration(targetEntity, TimeSpan.FromSeconds(10f));
-        }
+		if (component.AlreadyHit.Contains(target))
+			return;
 
-        _audio.PlayPvs(args.Sound, uid);
-        SubtractBloodEssence(uid, 30);
-        args.Handled = true;
-    }
+		component.AlreadyHit.Add(target);
+
+		if (HasComp<NullRodOwnerComponent>(target) && !component.TruePowerActive)
+			return;
+
+		if (_entityManager.TryGetComponent(target, out BodyComponent? _))
+		{
+			var damage = new DamageSpecifier { DamageDict = { { "Blunt", 60 } } };
+			_damage.TryChangeDamage(target, damage, origin: uid);
+				
+            if (_entityManager.TryGetComponent(target, out PhysicsComponent? physics))
+			{
+				var vampirePosition = _transform.GetWorldPosition(uid);
+				var targetPosition = _transform.GetWorldPosition(target);
+				var direction = (targetPosition - vampirePosition).Normalized();
+				
+                _physics.ApplyLinearImpulse(target, direction * 1000f, body: physics);
+			}
+
+			_stun.TryUpdateParalyzeDuration(target, TimeSpan.FromSeconds(10f));
+		}
+
+		if (_entityManager.TryGetComponent(target, out DestructibleComponent? _))
+		{
+			var damage = new DamageSpecifier { DamageDict = { { "Structural", 800 } } };
+			_damage.TryChangeDamage(target, damage, origin: uid);
+		}
+
+		_audio.PlayPvs("/Audio/Effects/Footsteps/largethud.ogg", uid);
+
+	}
+
+
     #endregion
 
     #region Dantalion Abilities
     private void MaxThrallCountUpdate(EntityUid uid, VampireComponent component, MaxThrallCountUpdateEvent args)
     {
-        component.MaxThrallCount++;
+        component.MaxThrallCount += 2;
 
         _action.RemoveAction(uid, args.Action!);
     }
@@ -1191,11 +1281,14 @@ public sealed partial class VampireSystem
     private void OnAfterEnthrall(EntityUid uid, VampireComponent component, VampireEnthrallActionEvent args)
     {
         var target = args.Target;
-        if (component.ThrallCount >= component.MaxThrallCount)
-        {
-            _popup.PopupEntity(Loc.GetString("vampire-max-trall-reached"), uid, uid, PopupType.Medium);
-            return;
-        }
+		if (!component.TruePowerActive)
+		{
+			if (component.ThrallCount >= component.MaxThrallCount)
+			{
+				_popup.PopupEntity(Loc.GetString("vampire-max-trall-reached"), uid, uid, PopupType.Medium);
+				return;
+			}
+		}
 
         if (HasComp<VampireComponent>(target) || HasComp<MindShieldComponent>(target) || HasComp<BibleUserComponent>(target)
             || HasComp<SyntheticOperatedComponent>(target))
@@ -1300,7 +1393,7 @@ public sealed partial class VampireSystem
             _popup.PopupEntity(Loc.GetString("vampire-blood-sacrifice-insufficient-blood"), uid, uid, PopupType.SmallCaution);
             return;
         }
-
+		
         var target = args.Target;
         if (TryComp<HumanoidAppearanceComponent>(target, out var humanoid))
         {
@@ -1438,6 +1531,104 @@ public sealed partial class VampireSystem
         SubtractBloodEssence(uid, 5);
         args.Handled = true;
     }
+	
+	private void OnThrallHeal(EntityUid uid, VampireComponent component, VampireThrallHealActionEvent args)
+	{
+		var thrallsInRange = _entityLookup.GetEntitiesInRange<ThrallComponent>(Transform(uid).Coordinates, 5);
+		int thrallCount = thrallsInRange.Count();
+		if (thrallCount == 0)
+		{
+			return;
+		}
+		
+		if (!CheckBloodEssence(uid, thrallCount*50))
+		{
+			_popup.PopupEntity(Loc.GetString("vampire-blood-sacrifice-insufficient-blood"), uid, uid, PopupType.SmallCaution);
+			return;
+		}
+		
+		var healingAmount = FixedPoint2.New(-10f);
+
+		var damageTypes = new[] { "Bloodloss", "Asphyxiation", "Blunt", "Slash", "Piercing", "Heat", "Poison" };
+		var healingSpec = new DamageSpecifier
+		{
+			DamageDict = new Dictionary<string, FixedPoint2>()
+		};
+
+		foreach (var damageType in damageTypes)
+		{
+			healingSpec.DamageDict[damageType] = healingAmount;
+		}
+
+		foreach (var thrallEntity in thrallsInRange)
+		{
+			if (!TryComp<SolutionContainerManagerComponent>(thrallEntity.Owner, out var container))
+				continue;
+				
+			if (!_solution.TryGetSolution(thrallEntity.Owner, "chemicals", out var entity, out var chemicals))
+				continue;
+			
+			if (entity.HasValue)
+			{
+				chemicals.AddReagent("Desoxyephedrine", FixedPoint2.New(10));
+				chemicals.AddReagent("Dylovene", FixedPoint2.New(10));
+				chemicals.AddReagent("Omnizine", FixedPoint2.New(4));
+				_solution.UpdateChemicals(entity.Value);
+			}
+		}
+
+		foreach (var thrallEntity in thrallsInRange)
+		{
+			var thrallUid = thrallEntity.Owner;
+			int count = 0;
+			void Heal()
+			{
+				if (TryComp<DamageableComponent>(thrallUid, out var damageable))
+				{
+					_damage.TryChangeDamage(thrallUid, healingSpec, out _, ignoreResistances: true, origin: uid);
+				}
+	
+				if (++count < 3)
+				{
+					Timer.Spawn(4000, Heal);
+				}
+			}
+
+			Heal();
+		}
+
+		SubtractBloodEssence(uid, thrallCount*50);
+
+		args.Handled = true;
+	}
+	
+	private void OnPacifyNearby(EntityUid uid, VampireComponent component, VampirePacifyNearbyActionEvent args)
+	{
+		if (!CheckBloodEssence(uid, 50))
+		{
+			_popup.PopupEntity(Loc.GetString("vampire-blood-sacrifice-insufficient-blood"), uid, uid, PopupType.SmallCaution);
+			return;
+		}
+		var peopleInRange = _entityLookup.GetEntitiesInRange<HumanoidAppearanceComponent>(Transform(uid).Coordinates, 6);
+		foreach (var person in peopleInRange)
+		{
+			if (HasComp<ThrallComponent>(person) || HasComp<VampireComponent>(person))
+				continue;
+			if (HasComp<NullRodOwnerComponent>(person) && !component.TruePowerActive)
+				continue;
+			if (HasComp<PacifiedComponent>(person))
+			{
+				continue;
+			}
+			
+			EnsureComp<PacifiedComponent>(person);
+			var target = person;
+			Timer.Spawn(8000, () => RemComp<PacifiedComponent>(target));
+		}
+		
+		SubtractBloodEssence(uid, 50);
+		args.Handled = true;
+	}
 
     private void OnMassHysteria(EntityUid uid, VampireComponent component, VampireMassHysteriaActionEvent args)
     {
@@ -1466,11 +1657,18 @@ public sealed partial class VampireSystem
     #endregion
 
     #region Other Methods
-    public void RemoveKnockdown(EntityUid uid)
-    {
-        _statusEffect.TryRemoveStatusEffect(uid, "KnockedDown");
-        _statusEffect.TryRemoveStatusEffect(uid, "Stun");
-    }
+	public void RemoveKnockdown(EntityUid uid)
+	{
+
+		if (TryComp<KnockedDownComponent>(uid, out var kd))
+		{
+			RemComp<KnockedDownComponent>(uid);
+		}
+
+		_statusEffect.TryRemoveStatusEffect(uid, "StatusEffectStunned");
+		_statusEffect.TryAddStatusEffectDuration(uid, "Adrenaline", TimeSpan.FromSeconds(10f));
+	}
+
 
     private void CoolSurroundingAtmosphere(EntityUid uid)
     {
